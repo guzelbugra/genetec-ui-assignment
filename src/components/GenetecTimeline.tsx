@@ -218,7 +218,7 @@ export const GenetecTimeline = <T,>({
                       <TimelineDot
                         color="primary"
                         variant="outlined"
-                        sx={{ mt: 2, mb: 1 }}
+                        sx={{ mt: 2.9, mb: 1 }}
                       />
                       {index < groupItems.length - 1 && <TimelineConnector />}
                     </TimelineSeparator>

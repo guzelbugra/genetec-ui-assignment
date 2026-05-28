@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { GenetecDataGrid, BaseColumn } from "../components/GenetecDataGrid";
 import { GenetecTimeline } from "../components/GenetecTimeline";
 import { initialMockData, LogEvent } from "../data/mockData";
@@ -7,13 +7,19 @@ import {
   Button,
   Chip,
   Container,
+  Dialog,
+  DialogContent,
   Divider,
+  IconButton,
   Stack,
   Typography,
 } from "@mui/material";
+import { GenetecForm } from "../components/GenetecForm";
+import EditIcon from "@mui/icons-material/Edit";
 
 interface TimelineItemProps {
   item: LogEvent;
+  onEdit: (item: LogEvent) => void;
 }
 
 type LogChipColor = "success" | "info" | "warning" | "error" | "default";
@@ -26,7 +32,9 @@ const statusConfig = {
   verbose: { color: "default", label: "VERBOSE" },
 };
 
-const logColumns: BaseColumn<LogEvent>[] = [
+const getLogColumns = (
+  onEdit: (row: LogEvent) => void,
+): BaseColumn<LogEvent>[] => [
   { accessor: "id", label: "ID", width: 90 },
   {
     accessor: "status",
@@ -60,16 +68,27 @@ const logColumns: BaseColumn<LogEvent>[] = [
     width: 500,
     sortable: false,
   },
+  {
+    accessor: "actions" as any,
+    label: "Actions",
+    width: 100,
+    renderCell: (_value, row) => (
+      <IconButton onClick={() => onEdit(row)} size="small">
+        <EditIcon fontSize="small" />
+      </IconButton>
+    ),
+  },
 ];
 
 const GenetecTimelineItem: React.FC<TimelineItemProps> = React.memo(
-  ({ item }) => {
+  ({ item, onEdit }) => {
     return (
       <Stack
         direction="row"
         spacing={2}
         sx={{
           p: 1,
+          alignItems: "center",
           "&:hover": { bgcolor: "action.hover" },
         }}
       >
@@ -86,6 +105,10 @@ const GenetecTimelineItem: React.FC<TimelineItemProps> = React.memo(
         />
 
         <Typography variant="body2">{item.title}</Typography>
+
+        <IconButton onClick={() => onEdit(item)} size="small" color="default">
+          <EditIcon fontSize="small" />
+        </IconButton>
       </Stack>
     );
   },
@@ -95,6 +118,8 @@ export const App: React.FC = () => {
   const [logs, setLogs] = useState<LogEvent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
+  const [editingLog, setEditingLog] = useState<LogEvent | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
     setIsLoading(true);
@@ -105,6 +130,17 @@ export const App: React.FC = () => {
 
     return () => clearTimeout(timer);
   }, []);
+
+  const generateNewLogId = (): string => {
+    return `log-${Date.now()}`;
+  };
+
+  const handleEditClick = (row: LogEvent) => {
+    setEditingLog(row);
+    setIsModalOpen(true);
+  };
+
+  const logColumns = useMemo(() => getLogColumns(handleEditClick), []);
 
   const onSimulateLoading = () => {
     setLogs([]);
@@ -122,13 +158,18 @@ export const App: React.FC = () => {
     setIsError(false);
   };
 
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setEditingLog(null);
+  };
+
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Box component="header">
         <Typography variant="h4">UI Library Showcase</Typography>
 
         <Typography variant="body1" color="text.secondary">
-          System log management dashboard built with React,TypeScript and MUI
+          System log management dashboard built with React, TypeScript and MUI
         </Typography>
         <Divider sx={{ my: 3, borderBottomWidth: "2px" }} />
         <Typography
@@ -145,17 +186,27 @@ export const App: React.FC = () => {
             onClick={onLoadData}
             disableElevation
           >
-            Load Data
+            Load Mock Events
           </Button>
           <Button
             variant="outlined"
-            color="primary"
+            color="warning"
             onClick={onSimulateLoading}
           >
             Simulate Loading
           </Button>
           <Button variant="outlined" color="error" onClick={onSimulateError}>
             Simulate Error
+          </Button>
+          <Button
+            variant="contained"
+            color="success"
+            onClick={() => {
+              setEditingLog(null);
+              setIsModalOpen(true);
+            }}
+          >
+            Add Event
           </Button>
         </Stack>
 
@@ -177,13 +228,84 @@ export const App: React.FC = () => {
           Chronological view of system logs grouped by day.
         </Typography>
         <GenetecTimeline<LogEvent>
-          items={logs.slice(0, 105)}
+          items={logs}
           getGroupKey={(item) => new Date(item.timestamp)}
-          renderItem={(item) => <GenetecTimelineItem item={item} />}
+          renderItem={(item) => (
+            <GenetecTimelineItem item={item} onEdit={handleEditClick} />
+          )}
           loading={isLoading}
           error={isError}
         />
       </Box>
+
+      <Dialog
+        open={isModalOpen}
+        onClose={handleModalClose}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogContent dividers>
+          <GenetecForm<LogEvent>
+            title={editingLog ? "Edit Event" : "Add New Event"}
+            fields={[
+              {
+                name: "title",
+                label: "Log Message",
+                type: "text",
+                required: true,
+              },
+              {
+                name: "timestamp",
+                label: "Date",
+                type: "date",
+                required: true,
+              },
+              {
+                name: "status",
+                label: "Status",
+                type: "select",
+                required: true,
+                options: [
+                  { label: "Success", value: "success" },
+                  { label: "Info", value: "info" },
+                  { label: "Warning", value: "warning" },
+                  { label: "Error", value: "error" },
+                  { label: "Verbose", value: "verbose" },
+                ],
+              },
+              { name: "description", label: "Description", type: "text" },
+            ]}
+            initialValues={
+              editingLog || {
+                id: "",
+                title: "",
+                timestamp: "",
+                status: "info",
+                description: "",
+              }
+            }
+            onSubmit={(val) => {
+              if (editingLog) {
+                const updatedLogs = logs.map((item) =>
+                  item.id === editingLog.id
+                    ? ({ ...val, id: editingLog.id } as LogEvent)
+                    : item,
+                );
+                setLogs(updatedLogs);
+              } else {
+                const generatedId = generateNewLogId();
+                const newLog: LogEvent = {
+                  ...val,
+                  id: generatedId,
+                };
+
+                setLogs([newLog, ...logs]);
+              }
+            }}
+            onCancel={handleModalClose}
+          />
+        </DialogContent>
+      </Dialog>
     </Container>
   );
 };
