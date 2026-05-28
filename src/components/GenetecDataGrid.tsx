@@ -59,7 +59,6 @@ export const GenetecDataGrid = <R extends GridValidRowModel>({
   return (
     <Box sx={{ height: height, width: "100%", mt: 2 }}>
       <DataGrid
-        label={"label"}
         rows={error ? [] : rows}
         columns={muiColumns}
         loading={loading}
