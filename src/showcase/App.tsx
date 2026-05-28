@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { GenetecDataGrid, BaseColumn } from "../components/GenetecDataGrid";
+import { GenetecTimeline } from "../components/GenetecTimeline";
 import { initialMockData, LogEvent } from "../data/mockData";
 import {
   Box,
@@ -10,6 +11,10 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
+
+interface TimelineItemProps {
+  item: LogEvent;
+}
 
 type LogChipColor = "success" | "info" | "warning" | "error" | "default";
 
@@ -28,8 +33,7 @@ const logColumns: BaseColumn<LogEvent>[] = [
     label: "Level",
     width: 130,
     renderCell: (value) => {
-      const config =
-        statusConfig[value as LogEvent["status"]] || statusConfig.verbose;
+      const config = statusConfig[value as LogEvent["status"]];
       return (
         <Chip
           label={config.label}
@@ -42,7 +46,14 @@ const logColumns: BaseColumn<LogEvent>[] = [
     },
   },
   { accessor: "title", label: "Log Message", width: 320 },
-  { accessor: "timestamp", label: "Timestamp", width: 220 },
+  {
+    accessor: "timestamp",
+    label: "Timestamp",
+    width: 220,
+    renderCell: (_value, data) => {
+      return new Date(data.timestamp).toLocaleString();
+    },
+  },
   {
     accessor: "description",
     label: "Description",
@@ -50,6 +61,35 @@ const logColumns: BaseColumn<LogEvent>[] = [
     sortable: false,
   },
 ];
+
+const GenetecTimelineItem: React.FC<TimelineItemProps> = React.memo(
+  ({ item }) => {
+    return (
+      <Stack
+        direction="row"
+        spacing={2}
+        sx={{
+          p: 1,
+          "&:hover": { bgcolor: "action.hover" },
+        }}
+      >
+        <Typography variant="caption" color="text.secondary">
+          {new Date(item.timestamp).toLocaleTimeString()}
+        </Typography>
+
+        <Chip
+          label={item.status.toUpperCase()}
+          variant="outlined"
+          size="small"
+          color={item.status as LogChipColor}
+          sx={{ fontWeight: "bold", minWidth: "90px" }}
+        />
+
+        <Typography variant="body2">{item.title}</Typography>
+      </Stack>
+    );
+  },
+);
 
 export const App: React.FC = () => {
   const [logs, setLogs] = useState<LogEvent[]>([]);
@@ -62,6 +102,7 @@ export const App: React.FC = () => {
       setIsLoading(false);
       setLogs(initialMockData);
     }, 2000);
+
     return () => clearTimeout(timer);
   }, []);
 
@@ -88,20 +129,8 @@ export const App: React.FC = () => {
 
         <Typography variant="body1" color="text.secondary">
           System log management dashboard built with React,TypeScript and MUI
-          v9.3.
         </Typography>
-
         <Divider sx={{ my: 3, borderBottomWidth: "2px" }} />
-      </Box>
-
-      <GenetecDataGrid<LogEvent>
-        title="Genetec Data Grid Showcase"
-        rows={logs}
-        columns={logColumns}
-        loading={isLoading}
-        error={isError}
-      />
-      <Box component="section" sx={{ mt: 4 }}>
         <Typography
           variant="subtitle2"
           color="text.secondary"
@@ -129,6 +158,31 @@ export const App: React.FC = () => {
             Simulate Error
           </Button>
         </Stack>
+
+        <Divider sx={{ my: 3, borderBottomWidth: "2px" }} />
+      </Box>
+
+      <GenetecDataGrid<LogEvent>
+        title="Genetec Data Grid Showcase"
+        rows={logs}
+        columns={logColumns}
+        loading={isLoading}
+        error={isError}
+      />
+      <Box component="section" sx={{ mt: 4 }}>
+        <Typography variant="h5" sx={{ mt: 5, mb: 1 }}>
+          Event Timeline
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Chronological view of system logs grouped by day.
+        </Typography>
+        <GenetecTimeline<LogEvent>
+          items={logs.slice(0, 105)}
+          getGroupKey={(item) => new Date(item.timestamp)}
+          renderItem={(item) => <GenetecTimelineItem item={item} />}
+          loading={isLoading}
+          error={isError}
+        />
       </Box>
     </Container>
   );

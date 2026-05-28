@@ -20,9 +20,9 @@ export const generateMockLogs = (): LogEvent[] => {
   const logs: LogEvent[] = [];
   const baseDate = new Date(2026, 1, 1); 
 
-  for (let i = 1; i <= 150; i++) { 
+  for (let i = 0; i < 250; i++) { 
   const currentDate = new Date(baseDate);
-  currentDate.setDate(baseDate.getDate() + Math.floor(i / 5)); 
+  currentDate.setDate(baseDate.getDate() + Math.floor(i / 20)); 
 
   currentDate.setHours(i % 24); 
 
@@ -31,11 +31,11 @@ export const generateMockLogs = (): LogEvent[] => {
   const titleBase = titles[i % titles.length];
 
   logs.push({
-    id: `log-${i}`,
-    title: `${titleBase} #${i}`,
-    timestamp: currentDate.toLocaleString(), 
+    id: `log-${i+1}`,
+    title: `${titleBase} #${i+1}`,
+    timestamp: currentDate.toISOString(), 
     status: status,
-    description: `Detailed log information for event #${i} with status ${status}.`
+    description: `Detailed log information for event #${i+1} with status ${status}.`
   });
 }
   return logs;
