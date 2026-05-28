@@ -48,9 +48,14 @@ export const GenetecTimeline = <T,>({
 
   // Group items by local date string
   const grouped = useMemo(() => {
-    if (loading || error) return [];
+    if (loading || error || !items.length) return [];
+
+    const sortedItems = [...items].sort(
+      (a, b) => getGroupKey(b).getTime() - getGroupKey(a).getTime(),
+    );
+
     const res: Record<string, T[]> = {};
-    items.forEach((item) => {
+    sortedItems.forEach((item) => {
       const dateObj = getGroupKey(item);
       const key = dateObj.toLocaleDateString();
       if (!res[key]) {
@@ -58,7 +63,10 @@ export const GenetecTimeline = <T,>({
       }
       res[key].push(item);
     });
-    return Object.entries(res);
+
+    return Object.entries(res).sort((a, b) => {
+      return getGroupKey(b[1][0]).getTime() - getGroupKey(a[1][0]).getTime();
+    });
   }, [items, getGroupKey, loading, error]);
 
   // Open the group on top by default
