@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { GenetecDataGrid } from "../components/GenetecDataGrid";
-import { GenetecTimeline } from "../components/GenetecTimeline";
-import { initialMockData, LogEvent } from "../data/mockData";
+import { GenetecDataGrid } from "../../lib/components/GenetecDataGrid";
+import { GenetecTimeline } from "../../lib/components/GenetecTimeline";
+import { initialMockData, LogEvent } from "./data/mockData";
 import {
   Box,
   Button,
@@ -12,7 +12,7 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { GenetecForm } from "../components/GenetecForm";
+import { GenetecForm } from "../../lib/components/GenetecForm";
 import { TimelineItem } from "./TimelineItem";
 import { getLogColumns } from "./AppColumns";
 import { FORM_FIELDS } from "./formFields";

@@ -1,5 +1,5 @@
-import { FieldConfig } from "../components/GenetecForm";
-import { LogEvent } from "../data/mockData";
+import { FieldConfig } from "../../lib/components/GenetecForm";
+import { LogEvent } from "./data/mockData";
 
 export const FORM_FIELDS: FieldConfig<LogEvent>[] = [
   {

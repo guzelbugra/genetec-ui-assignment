@@ -1,7 +1,7 @@
 import React from "react";
 import { Stack, Typography, Chip, IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
-import { LogEvent } from "../data/mockData";
+import { LogEvent } from "./data/mockData";
 import { LogChipColor } from "./App";
 
 interface TimelineItemProps {

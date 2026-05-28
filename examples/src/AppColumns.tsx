@@ -1,7 +1,7 @@
 import { Chip, IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
-import { BaseColumn } from "../components/GenetecDataGrid";
-import { LogEvent } from "../data/mockData";
+import { BaseColumn } from "../../lib/components/GenetecDataGrid";
+import { LogEvent } from "./data/mockData";
 import { LogChipColor } from "./App";
 
 const statusConfig = {

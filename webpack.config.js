@@ -1,69 +1,54 @@
-const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const path = require("path");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = (env, options) => {
-  const isProd = options.mode === 'production';
-  const currentEntry = isProd ? './src/index.ts' : './src/main.tsx';
-
-  const activePlugins = [];
-  if (!isProd) {
-    activePlugins.push(
-      new HtmlWebpackPlugin({
-        template: './public/index.html',
-      })
-    );
-  }
+  const isProd = options.mode === "production";
 
   return {
-    entry: currentEntry,
+    entry: isProd ? "./lib/index.ts" : "./examples/src/main.tsx",
+    devtool: isProd ? "source-map" : "eval-source-map",
     output: {
-      path: path.resolve(__dirname, 'dist'),
-      filename: 'index.js',
+      path: path.resolve(__dirname, "dist"),
+      filename: isProd ? "index.js" : "[name].js",
       clean: true,
       library: {
-        name: 'CoreUI',
-        type: 'umd',
-        export: 'default',
+        name: "CoreUI",
+        type: "umd",
       },
-      globalObject: 'this',
+      globalObject: "this",
     },
     resolve: {
-      extensions: ['.ts', '.tsx', '.js', '.jsx'],
+      extensions: [".ts", ".tsx", ".js", ".jsx"],
     },
     module: {
       rules: [
         {
           test: /\.(ts|tsx)$/,
           exclude: /node_modules/,
-          use: 'ts-loader',
+          use: "ts-loader",
         },
         {
           test: /\.css$/,
-          use: [
-            'style-loader',
-            {
-              loader: 'css-loader',
-              options: {
-                modules: {
-                  auto: true,
-                  localIdentName: 'ui-[local]-[hash:base64:4]',
-                },
-              },
-            },
-          ],
+          use: ["style-loader", "css-loader"],
         },
       ],
     },
-    externals: isProd ? {
-      react: 'react',
-      'react-dom': 'react-dom',
-    } : {},
-    plugins: activePlugins,
-    devServer: {
-      port: 3000,
-      hot: true,
-      open: true,
+    plugins: [
+      !isProd &&
+        new HtmlWebpackPlugin({
+          template: "./examples/public/index.html",
+        }),
+    ].filter(Boolean),
+    externals: isProd
+      ? {
+          react: "react",
+          "react-dom": "react-dom",
+        }
+      : {},
+
+    optimization: {
+      minimize: isProd,
+      splitChunks: !isProd ? { chunks: "all" } : false,
     },
-    devtool: isProd ? 'source-map' : 'eval-source-map',
   };
 };
