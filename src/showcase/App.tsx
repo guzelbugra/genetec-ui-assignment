@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { GenetecDataGrid } from "../components/GenetecDataGrid";
 import { GenetecTimeline } from "../components/GenetecTimeline";
 import { initialMockData, LogEvent } from "../data/mockData";
@@ -68,6 +68,10 @@ export const App: React.FC = () => {
     setEditingLog(null);
   };
 
+  const handleGetGroupKey = useCallback((item: LogEvent) => {
+    return new Date(item.timestamp);
+  }, []);
+
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Box component="header">
@@ -134,7 +138,7 @@ export const App: React.FC = () => {
         </Typography>
         <GenetecTimeline<LogEvent>
           items={logs}
-          getGroupKey={(item) => new Date(item.timestamp)}
+          getGroupKey={handleGetGroupKey}
           renderItem={(item) => (
             <TimelineItem item={item} onEdit={handleEditClick} />
           )}
