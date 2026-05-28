@@ -1,118 +1,23 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { GenetecDataGrid, BaseColumn } from "../components/GenetecDataGrid";
+import { GenetecDataGrid } from "../components/GenetecDataGrid";
 import { GenetecTimeline } from "../components/GenetecTimeline";
 import { initialMockData, LogEvent } from "../data/mockData";
 import {
   Box,
   Button,
-  Chip,
   Container,
   Dialog,
   DialogContent,
   Divider,
-  IconButton,
   Stack,
   Typography,
 } from "@mui/material";
 import { GenetecForm } from "../components/GenetecForm";
-import EditIcon from "@mui/icons-material/Edit";
+import { TimelineItem } from "./TimelineItem";
+import { getLogColumns } from "./AppColumns";
+import { FORM_FIELDS } from "./formFields";
 
-interface TimelineItemProps {
-  item: LogEvent;
-  onEdit: (item: LogEvent) => void;
-}
-
-type LogChipColor = "success" | "info" | "warning" | "error" | "default";
-
-const statusConfig = {
-  success: { color: "success", label: "SUCCESS" },
-  info: { color: "info", label: "INFO" },
-  warning: { color: "warning", label: "WARNING" },
-  error: { color: "error", label: "ERROR" },
-  verbose: { color: "default", label: "VERBOSE" },
-};
-
-const getLogColumns = (
-  onEdit: (row: LogEvent) => void,
-): BaseColumn<LogEvent>[] => [
-  { accessor: "id", label: "ID", width: 90 },
-  {
-    accessor: "status",
-    label: "Level",
-    width: 130,
-    renderCell: (value) => {
-      const config = statusConfig[value as LogEvent["status"]];
-      return (
-        <Chip
-          label={config.label}
-          color={config.color as LogChipColor}
-          size="small"
-          variant="outlined"
-          sx={{ fontWeight: "bold", minWidth: "90px" }}
-        />
-      );
-    },
-  },
-  { accessor: "title", label: "Log Message", width: 320 },
-  {
-    accessor: "timestamp",
-    label: "Timestamp",
-    width: 220,
-    renderCell: (_value, data) => {
-      return new Date(data.timestamp).toLocaleString();
-    },
-  },
-  {
-    accessor: "description",
-    label: "Description",
-    width: 500,
-    sortable: false,
-  },
-  {
-    accessor: "actions" as any,
-    label: "Actions",
-    width: 100,
-    renderCell: (_value, row) => (
-      <IconButton onClick={() => onEdit(row)} size="small">
-        <EditIcon fontSize="small" />
-      </IconButton>
-    ),
-  },
-];
-
-const GenetecTimelineItem: React.FC<TimelineItemProps> = React.memo(
-  ({ item, onEdit }) => {
-    return (
-      <Stack
-        direction="row"
-        spacing={2}
-        sx={{
-          p: 1,
-          alignItems: "center",
-          "&:hover": { bgcolor: "action.hover" },
-        }}
-      >
-        <Typography variant="caption" color="text.secondary">
-          {new Date(item.timestamp).toLocaleTimeString()}
-        </Typography>
-
-        <Chip
-          label={item.status.toUpperCase()}
-          variant="outlined"
-          size="small"
-          color={item.status as LogChipColor}
-          sx={{ fontWeight: "bold", minWidth: "90px" }}
-        />
-
-        <Typography variant="body2">{item.title}</Typography>
-
-        <IconButton onClick={() => onEdit(item)} size="small" color="default">
-          <EditIcon fontSize="small" />
-        </IconButton>
-      </Stack>
-    );
-  },
-);
+export type LogChipColor = "success" | "info" | "warning" | "error" | "default";
 
 export const App: React.FC = () => {
   const [logs, setLogs] = useState<LogEvent[]>([]);
@@ -231,7 +136,7 @@ export const App: React.FC = () => {
           items={logs}
           getGroupKey={(item) => new Date(item.timestamp)}
           renderItem={(item) => (
-            <GenetecTimelineItem item={item} onEdit={handleEditClick} />
+            <TimelineItem item={item} onEdit={handleEditClick} />
           )}
           loading={isLoading}
           error={isError}
@@ -247,34 +152,7 @@ export const App: React.FC = () => {
         <DialogContent dividers>
           <GenetecForm<LogEvent>
             title={editingLog ? "Edit Event" : "Add New Event"}
-            fields={[
-              {
-                name: "title",
-                label: "Log Message",
-                type: "text",
-                required: true,
-              },
-              {
-                name: "timestamp",
-                label: "Date",
-                type: "date",
-                required: true,
-              },
-              {
-                name: "status",
-                label: "Status",
-                type: "select",
-                required: true,
-                options: [
-                  { label: "Success", value: "success" },
-                  { label: "Info", value: "info" },
-                  { label: "Warning", value: "warning" },
-                  { label: "Error", value: "error" },
-                  { label: "Verbose", value: "verbose" },
-                ],
-              },
-              { name: "description", label: "Description", type: "text" },
-            ]}
+            fields={FORM_FIELDS}
             initialValues={
               editingLog || {
                 id: "",

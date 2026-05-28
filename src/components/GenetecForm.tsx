@@ -10,10 +10,9 @@ import {
   FormControl,
   InputLabel,
   Select,
-  Fade,
 } from "@mui/material";
 
-interface FieldConfig<T> {
+export interface FieldConfig<T> {
   name: keyof T;
   label: string;
   type?: "text" | "date" | "select";
